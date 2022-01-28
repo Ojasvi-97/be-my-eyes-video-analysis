@@ -1,5 +1,8 @@
 from azure.cognitiveservices.vision.computervision import ComputerVisionClient
 from msrest.authentication import CognitiveServicesCredentials
+import requests
+import time
+import json
 
 
 class APICalls:
@@ -10,6 +13,44 @@ class APICalls:
         self.computervision_client = ComputerVisionClient(self.endpoint,
                                                           CognitiveServicesCredentials(self.subscription_key))
         self.information_dict = {}
+
+    def read_text(self, image):
+        try:
+            text_recognition_url = self.endpoint + "/vision/v3.1/read/analyze"
+            image.seek(0)
+            headers = {'Ocp-Apim-Subscription-Key': self.subscription_key,
+                       'Content-Type': 'application/octet-stream'}
+            params = {'language': 'unk',
+                      'detectOrientation': 'true'}
+            response = requests.post(
+                text_recognition_url,
+                headers=headers,
+                data=image)
+            response.raise_for_status()
+            # operation_url = response.headers["Operation-Location"]
+
+            analysis = {}
+            poll = True
+            while poll:
+                response_final = requests.get(
+                    response.headers["Operation-Location"], headers=headers)
+                analysis = response_final.json()
+                time.sleep(1)
+                if "analyzeResult" in analysis:
+                    poll = False
+                if ("status" in analysis) and (analysis['status'] == 'failed'):
+                    poll = False
+
+            polygons = []
+            if "analyzeResult" in analysis:
+                # Extract the recognized text, with bounding boxes.
+                polygons = [(line["boundingBox"], line["text"])
+                            for line in analysis["analyzeResult"]["readResults"][0]["lines"]]
+
+            print('>>', polygons)
+
+        except Exception as e:
+            print(e)
 
     def object_detection(self, image):
         try:
@@ -54,6 +95,7 @@ class APICalls:
                                               "celeb_names": celebrities})
         except Exception as e:
             print(e)
+
     def domain_specific_landmark(self, image):
         try:
             image.seek(0)
@@ -137,9 +179,11 @@ class APICalls:
 
     def get_features(self, image):
         """ returns a json for every frame """
-        self.object_detection(image=image)
-        self.analyze_image(image=image)
-        self.domain_specific_celebrity(image=image)
-        self.domain_specific_landmark(image=image)
+        # self.object_detection(image=image)
+        # self.analyze_image(image=image)
+        # self.domain_specific_celebrity(image=image)
+        # self.domain_specific_landmark(image=image)
 
+        self.read_text(image=image)
+        ## ocr, text detection
         return self.information_dict

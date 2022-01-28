@@ -27,6 +27,10 @@ class Analyzer:
     def analyze_video(self, video_path):
         try:
             video = cv2.VideoCapture(video_path)
+            # document
+            # video classification
+            # acitivity net, CONTENT classification, extend api, review literature,
+            # efficientyly come up with labels so that we arent using every frame
             count = 0
             while True:
                 ret, frame = video.read()
@@ -57,7 +61,7 @@ class Analyzer:
 def main():
     analyzer = Analyzer()
     # analyzer.analyze_video('videos/vid2.mp4')
-    analyzer.analyze_image(image_path="images/test.jpg")
+    analyzer.analyze_image(image_path="images/test_text.jpeg")
 
 
 if __name__ == "__main__":
