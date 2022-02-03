@@ -36,24 +36,21 @@ class ShotDetector:
             p = (cv2.countNonZero(mask) / float(W * H)) * 100
 
             if p < args["min_percent"] and not captured and frames > args["warmup"]:
-                # show the captured frame and update the captured bookkeeping
-                # variable
+
                 cv2.imwrite("Captured" + str(total), frame)
                 captured = True
-                # construct the path to the output frame and increment the
-                # total frame counter
+
                 filename = "{}.png".format(total)
-                path = os.path.sep.join([filename])
+                path = os.path.sep.join(["shot_detection_results", filename])
                 total += 1
                 # save the  *original, high resolution* frame to disk
                 print("[INFO] saving {}".format(path))
                 cv2.imwrite(path, orig)
-                # otherwise, either the scene is changing or we're still in warmup
-                # mode so let's wait until the scene has settled or we're finished
-                # building the background model
+
             elif captured and p >= args["max_percent"]:
                 captured = False
             frames += 1
 
+
 def main():
-    ShotDetector(video_path="").detect_shot_boundary()
+    ShotDetector(video_path="videos/vid1.mp4").detect_shot_boundary()
